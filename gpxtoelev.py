@@ -1,7 +1,7 @@
 # filename: gpxtoelev.py
 # input: gpx file
 # Parses gpx XML file to elevation profile using Google Elevation API
-# Git
+
 import math
 import simplejson
 import urllib
