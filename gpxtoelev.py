@@ -73,12 +73,12 @@ def distance(pathdict):
     # Written by Wayne Dyck
     
     dist = 0
-    print pathList
-    for item in range(len(pathList) - 1):
+    print pathlist
+    for item in range(len(pathlist) - 1):
         itemNum = 0
 #        pathItems = pathdict
-        lat1, lon1 = pathList[item]
-        lat2, lon2 = pathList[item + 1]
+        lat1, lon1 = pathlist[item]
+        lat2, lon2 = pathlist[item + 1]
         radius = 3959 # mi
 
         dlat = math.radians(float(lat2) - float(lat1))
@@ -95,23 +95,26 @@ def distance(pathdict):
 
     return dist
 
-def elevPlot(y):
+def elevPlot(y, xLimit):
 
 # Uses pylab to plot elevation data.
 
-    pylab.ylim()
+    pylab.xlim(xLimit)
     pylab.plot(y)
     pylab.show()
    
 if __name__ == '__main__':
   
-    pathStr, pathList = latLonPath(filename)
+    pathStr, pathlist = latLonPath(filename)
   
 #    print pathStr
 #    print "*" *100
 #    pathItems = pathdict.items()
 #    print pathItems[0]
+    xlimit = distance(pathlist)
 
-#    ycoord = getElevation(pathStr)
-#    elevPlot(ycoord)
-    print distance(pathList)
+    print xlimit
+
+    ycoord = getElevation(pathStr)
+    elevPlot(ycoord, xlimit)
+#    print distance(pathlist)
