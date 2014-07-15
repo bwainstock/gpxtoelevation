@@ -7,6 +7,7 @@ import simplejson
 import urllib
 import pylab
 from sys import argv
+import gpolyencode
 
 ELEVATION_BASE_URL = 'http://maps.google.com/maps/api/elevation/json'
 script, filename = argv
@@ -27,8 +28,6 @@ def getElevation(path="36.578581,-118.291994|36.23998,-116.83171",samples="100",
     # Create a dictionary for each results[] object
     elevationArray = []
 
-    responsefile = open("responsefile", "a")
-
     for resultset in response['results']:
       elevationArray.append(resultset['elevation'])
     
@@ -47,12 +46,12 @@ def latLonPath(filename):
         if TRKPT in line:
             latstart = line.find('"')
             latend = line.find('"', latstart + 1)
-            lat = line[latstart + 1:latend]
+            lat = float(line[latstart + 1:latend])
             print lat
 
             lonstart = line.find('"', latend + 1)
             lonend = line.find('"', lonstart + 1)
-            lon = line[lonstart + 1:lonend]
+            lon = float(line[lonstart + 1:lonend])
             print lon
 
             pathdict.append((lat, lon))
@@ -62,7 +61,7 @@ def latLonPath(filename):
 #    print pathdict
 
     for k, v in pathdict:
-        myPath = myPath + k + "," + v + "|"
+        myPath = myPath + str(k) + "," + str(v) + "|"
         limit = limit + 1
 
     pathStr = myPath[:-1]
@@ -95,6 +94,14 @@ def distance(pathdict):
 
     return dist
 
+def polyEncoder(pathlist):
+
+    encoder = gpolyencode.GPolyEncoder()
+    codedpath = encoder.encode(pathlist)
+    points = codedpath['points']
+    print codedpath
+    print len(points)
+
 def elevPlot(y, xLimit):
 
 # Uses pylab to plot elevation data.
@@ -106,15 +113,11 @@ def elevPlot(y, xLimit):
 if __name__ == '__main__':
   
     pathStr, pathlist = latLonPath(filename)
-  
-#    print pathStr
-#    print "*" *100
-#    pathItems = pathdict.items()
-#    print pathItems[0]
-    xlimit = distance(pathlist)
+    polyEncoder(pathlist)
+#    xlimit = distance(pathlist)
 
-    print xlimit
+#    print xlimit
 
-    ycoord = getElevation(pathStr)
-    elevPlot(ycoord, xlimit)
+#    ycoord = getElevation(pathStr)
+#    elevPlot(ycoord, xlimit)
 #    print distance(pathlist)
