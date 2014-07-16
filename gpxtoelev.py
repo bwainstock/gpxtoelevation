@@ -127,8 +127,14 @@ def elevPlot(y, xDist):
     # Plot graph using pylab
     graphinfo = 'Distance: ' + ("%.2f" % xDist)
     print "graphinfo: " , graphinfo
+
     pylab.xlim(0.0, xDist)
+#    fig, ax = pylab.subplots(1)
+#    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+#    ax.text(.95, .95, graphinfo, transform=ax.transAxes, bbox=props)
+    
     pylab.plot(xnums, y, label= (graphinfo + ' mi'))
+
     pylab.legend()
     pylab.xlabel('Miles')
     pylab.ylabel('Feet')
