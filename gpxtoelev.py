@@ -25,6 +25,7 @@ def getElevation(path="", samples="100",sensor="false", **elvtn_args):
     })
 
     url = ELEVATION_BASE_URL + '?' + urllib.urlencode(elvtn_args)
+    print "url: " , url
     response = simplejson.load(urllib.urlopen(url))
     print "response: " , response
     # Create a dictionary for each results[] object
@@ -33,7 +34,7 @@ def getElevation(path="", samples="100",sensor="false", **elvtn_args):
     for resultset in response['results']:
       elevationArray.append(resultset['elevation'])
    
-    responsefile = open("responsefile", "a")
+    responsefile = open("responsefile", "w")
     responsefile.write(str(response))
     responsefile.close()
 
@@ -117,7 +118,7 @@ def elevPlot(y, xLimit):
 # Uses pylab to plot elevation data.
 
 #    pylab.ylim(range(1.5))
-#    pylab.xlim(xLimit)
+#    pylab.xlim(0.0, xLimit)
     print "y: " , y
     
     pylab.plot(y)
@@ -131,7 +132,7 @@ if __name__ == '__main__':
     xlimit = distance(pathlist)
     ycoord = getElevation(pathStr)
 
-#    elevPlot(ycoord, xlimit)
+    elevPlot(ycoord, xlimit)
 
     print distance(pathlist)
     print "ycoord: " , ycoord
