@@ -17,7 +17,7 @@ def getElevation(path="", samples="100",sensor="false", **elvtn_args):
     # Google Elevation API call.  Takes lat/lon as input, outputs elevation dictionary.
     
     encpath = "enc:" + path
-    print "encpath: " + encpath
+    #print "encpath: " + encpath
     elvtn_args.update({
         'path': encpath,
         'samples': samples,
@@ -25,14 +25,15 @@ def getElevation(path="", samples="100",sensor="false", **elvtn_args):
     })
 
     url = ELEVATION_BASE_URL + '?' + urllib.urlencode(elvtn_args)
-    print "url: " , url
+    #print "url: " , url
     response = simplejson.load(urllib.urlopen(url))
-    print "response: " , response
+    #print "response: " , response
     # Create a dictionary for each results[] object
     elevationArray = []
 
     for resultset in response['results']:
-      elevationArray.append(resultset['elevation'])
+        elevfeet = resultset['elevation'] * 3.281 # Convert elevation to feet
+        elevationArray.append(elevfeet)
    
     responsefile = open("responsefile", "w")
     responsefile.write(str(response))
@@ -80,7 +81,7 @@ def distance(pathdict):
     # Written by Wayne Dyck
     
     dist = 0
-    print pathlist
+    #print pathlist
     for item in range(len(pathlist) - 1):
         itemNum = 0
 #        pathItems = pathdict
@@ -107,21 +108,32 @@ def polyEncoder(pathlist):
     encoder = gpolyencode.GPolyEncoder()
     codedpath = encoder.encode(pathlist)
     points = codedpath['points']
-    print "*" * 100
-    print codedpath
-    print len(points)
+    #print "*" * 100
+    #print codedpath
+    #print len(points)
 
     return points
 
-def elevPlot(y, xLimit):
+def elevPlot(y, xDist):
 
 # Uses pylab to plot elevation data.
 
-#    pylab.ylim(range(1.5))
-#    pylab.xlim(0.0, xLimit)
-    print "y: " , y
-    
-    pylab.plot(y)
+    # Fill xnums list with len(y) coords evenly spaced
+    xnums = []
+    incs = xDist / (len(y) - 1)
+    for i in range(len(y)):
+         xnums.append(i * incs)
+
+    # Plot graph using pylab
+    graphinfo = 'Distance: ' + ("%.2f" % xDist)
+    print "graphinfo: " , graphinfo
+    pylab.xlim(0.0, xDist)
+    pylab.plot(xnums, y, label= (graphinfo + ' mi'))
+    pylab.legend()
+    pylab.xlabel('Miles')
+    pylab.ylabel('Feet')
+    pylab.grid(True)
+    pylab.title('Elevation Profile')
     pylab.show()
    
 if __name__ == '__main__':
@@ -129,10 +141,10 @@ if __name__ == '__main__':
     pathlist = latLonPath(filename)
 
     pathStr = polyEncoder(pathlist)
-    xlimit = distance(pathlist)
+    xdist = distance(pathlist)
     ycoord = getElevation(pathStr)
 
-    elevPlot(ycoord, xlimit)
+    elevPlot(ycoord, xdist)
 
-    print distance(pathlist)
-    print "ycoord: " , ycoord
+    #print distance(pathlist)
+    #print "ycoord: " , ycoord
