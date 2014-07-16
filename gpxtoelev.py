@@ -62,7 +62,7 @@ def latLonPath(filename):
             lon = float(line[lonstart + 1:lonend])
 #            print lon
 
-            pathdict.append((lat, lon))
+            pathdict.append((lon, lat))
     myPath = ''
     limit = 0
 
