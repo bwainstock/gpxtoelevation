@@ -128,9 +128,6 @@ def elevPlot(y, xDist):
 
     maxelev = (sorted(y)[-1])
     minelev = (sorted(y)[0])
-#    graphinfo = ('Distance: ' + "%.2f") + \
-#                ('Max: ' + "%.2f") + \
-#                ('Min: ' + "%.2f") % (xDist, maxelev, minelev)
     graphinfo = 'Distance: %.2f\nMax: %i\n Min: %i' % (xDist, maxelev, minelev)
     print "graphinfo: " , graphinfo
 
@@ -140,7 +137,6 @@ def elevPlot(y, xDist):
             verticalalignment='top', horizontalalignment='right', bbox=props)
     ax.set_xlim(0.0, xDist)
     ax.plot(xnums, y, label= (graphinfo + ' mi'))
-#    ax.legend()
     ax.xaxis.set_label_text('Miles')
     ax.yaxis.set_label_text('Feet')
     ax.grid(True)
@@ -149,13 +145,8 @@ def elevPlot(y, xDist):
    
 if __name__ == '__main__':
   
-    pathlist = latLonPath(filename)
-
-    pathStr = polyEncoder(pathlist)
-    xdist = distance(pathlist)
-    ycoord = getElevation(pathStr)
-
-    elevPlot(ycoord, xdist)
-
-    #print distance(pathlist)
-    #print "ycoord: " , ycoord
+    pathlist = latLonPath(filename) #Parses 'filename' for GPS coordinates
+    pathStr = polyEncoder(pathlist) #Encodes GPS coordinates to Google Polyline Encoding
+    xdist = distance(pathlist) #Calculates distance to set x coordinates
+    ycoord = getElevation(pathStr) # Google Elevation API to set y coordinates
+    elevPlot(ycoord, xdist) #Plots elevation
