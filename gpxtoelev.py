@@ -6,18 +6,21 @@ import math
 import simplejson
 import urllib
 import pylab
+import numpy
 from sys import argv
 import gpolyencode
 
 ELEVATION_BASE_URL = 'http://maps.google.com/maps/api/elevation/json'
 script, filename = argv
 
-def getElevation(path="", samples="100",sensor="false", **elvtn_args):
+def getElevation(path="", samples="500",sensor="false", key="AIzaSyBB_e1H1aOubumnTfGDzjcyO3R9CXHK3q8", **elvtn_args):
 
     # Google Elevation API call.  Takes lat/lon as input, outputs elevation dictionary.
     
     encpath = "enc:" + path
-    #print "encpath: " + encpath
+
+    print "len path: " , len(path)
+
     elvtn_args.update({
         'path': encpath,
         'samples': samples,
@@ -25,9 +28,12 @@ def getElevation(path="", samples="100",sensor="false", **elvtn_args):
     })
 
     url = ELEVATION_BASE_URL + '?' + urllib.urlencode(elvtn_args)
-    #print "url: " , url
+
+    print len(url)
+    print "urllib: " , len(elvtn_args.values())
+
     response = simplejson.load(urllib.urlopen(url))
-    #print "response: " , response
+    
     # Create a dictionary for each results[] object
     elevationArray = []
 
@@ -55,23 +61,20 @@ def latLonPath(filename):
             latstart = line.find('"')
             latend = line.find('"', latstart + 1)
             lat = float(line[latstart + 1:latend])
-#            print lat
 
             lonstart = line.find('"', latend + 1)
             lonend = line.find('"', lonstart + 1)
             lon = float(line[lonstart + 1:lonend])
-#            print lon
 
             pathdict.append((lon, lat))
-    myPath = ''
-    limit = 0
-
-#    print pathdict
-
-    for k, v in pathdict:
-        myPath = myPath + str(k) + "," + str(v) + "|"
-        limit = limit + 1
-
+    
+#    myPath = ''
+#    limit = 0
+#
+#    for k, v in pathdict:
+#        myPath = myPath + str(k) + "," + str(v) + "|"
+#        limit = limit + 1
+#
 #    pathStr = myPath[:-1
 
     return pathdict
@@ -81,10 +84,9 @@ def distance(pathdict):
     # Written by Wayne Dyck
     
     dist = 0
-    #print pathlist
+    
     for item in range(len(pathlist) - 1):
         itemNum = 0
-#        pathItems = pathdict
         lat1, lon1 = pathlist[item]
         lat2, lon2 = pathlist[item + 1]
         radius = 3959 # mi
@@ -96,11 +98,6 @@ def distance(pathdict):
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         dist += radius * c
 
-        
-#        print "lat: " , lat1
-#        print "lon: " , lon1
-#        print "dist: " , dist
-
     return dist
 
 def polyEncoder(pathlist):
@@ -108,11 +105,24 @@ def polyEncoder(pathlist):
     encoder = gpolyencode.GPolyEncoder()
     codedpath = encoder.encode(pathlist)
     points = codedpath['points']
-    #print "*" * 100
-    #print codedpath
-    #print len(points)
 
     return points
+
+def largePath(pathlist):
+
+    #    numofrequests = range((numpy.ceil(len(pathlist) / 400.0))).astype('int')
+    numofrequests = range(numpy.ceil(len(pathlist) / 400.0).astype('int'))
+    ycoord = []
+    for i in numofrequests:
+        start = (i * 400)
+        end = (i + 1) * 400
+
+        partialpathStr = polyEncoder(pathlist[start:end])
+        partialycoord = getElevation(partialpathStr)
+
+        ycoord = ycoord + partialycoord
+
+    return ycoord
 
 def elevPlot(y, xDist):
 
@@ -132,11 +142,11 @@ def elevPlot(y, xDist):
     print "graphinfo: " , graphinfo
 
     fig, ax = pylab.subplots(1)
-    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.2)
     ax.text(.99, .99, graphinfo, transform=ax.transAxes, \
             verticalalignment='top', horizontalalignment='right', bbox=props)
     ax.set_xlim(0.0, xDist)
-    ax.plot(xnums, y, label= (graphinfo + ' mi'))
+    ax.plot(xnums, y)
     ax.xaxis.set_label_text('Miles')
     ax.yaxis.set_label_text('Feet')
     ax.grid(True)
@@ -146,7 +156,10 @@ def elevPlot(y, xDist):
 if __name__ == '__main__':
   
     pathlist = latLonPath(filename) #Parses 'filename' for GPS coordinates
-    pathStr = polyEncoder(pathlist) #Encodes GPS coordinates to Google Polyline Encoding
+#    pathStr = polyEncoder(pathlist) #Encodes GPS coordinates to Google Polyline Encoding
+#    ycoord = getElevation(pathStr) # Google Elevation API to set y coordinates
+    ycoord = largePath(pathlist)
+    print "ycoord: " , ycoord
+    print len(ycoord)
     xdist = distance(pathlist) #Calculates distance to set x coordinates
-    ycoord = getElevation(pathStr) # Google Elevation API to set y coordinates
     elevPlot(ycoord, xdist) #Plots elevation
