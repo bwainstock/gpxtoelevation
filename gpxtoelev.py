@@ -125,21 +125,26 @@ def elevPlot(y, xDist):
          xnums.append(i * incs)
 
     # Plot graph using pylab
-    graphinfo = 'Distance: ' + ("%.2f" % xDist)
+
+    maxelev = (sorted(y)[-1])
+    minelev = (sorted(y)[0])
+#    graphinfo = ('Distance: ' + "%.2f") + \
+#                ('Max: ' + "%.2f") + \
+#                ('Min: ' + "%.2f") % (xDist, maxelev, minelev)
+    graphinfo = 'Distance: %.2f\nMax: %i\n Min: %i' % (xDist, maxelev, minelev)
     print "graphinfo: " , graphinfo
 
-    pylab.xlim(0.0, xDist)
-#    fig, ax = pylab.subplots(1)
-#    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-#    ax.text(.95, .95, graphinfo, transform=ax.transAxes, bbox=props)
-    
-    pylab.plot(xnums, y, label= (graphinfo + ' mi'))
-
-    pylab.legend()
-    pylab.xlabel('Miles')
-    pylab.ylabel('Feet')
-    pylab.grid(True)
-    pylab.title('Elevation Profile')
+    fig, ax = pylab.subplots(1)
+    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+    ax.text(.99, .99, graphinfo, transform=ax.transAxes, \
+            verticalalignment='top', horizontalalignment='right', bbox=props)
+    ax.set_xlim(0.0, xDist)
+    ax.plot(xnums, y, label= (graphinfo + ' mi'))
+#    ax.legend()
+    ax.xaxis.set_label_text('Miles')
+    ax.yaxis.set_label_text('Feet')
+    ax.grid(True)
+    ax.set_title('Elevation Profile')
     pylab.show()
    
 if __name__ == '__main__':
