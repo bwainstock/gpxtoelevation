@@ -1,23 +1,26 @@
+'''
 # filename: gpxtoelev.py
 # input: gpx file
 # Parses gpx XML file to elevation profile using Google Elevation API
+'''
 
 from __future__ import print_function
 import math
-import simplejson
+from sys import argv
 import urllib
+import simplejson
 from matplotlib import pyplot as pylab
 import numpy
-from sys import argv
 import gpolyencode
 
 ELEVATION_BASE_URL = 'http://maps.google.com/maps/api/elevation/json'
 KEY = "AIzaSyBB_e1H1aOubumnTfGDzjcyO3R9CXHK3q8"
 
 
-def getElevation(path="", samples="500", sensor="false", key=KEY, **elvtn_args):
-
-    # Google Elevation API call. Takes lat/lon as input, outputs elevation dict
+def get_elevation(path="", samples="500", sensor="false", **elvtn_args):
+    '''
+    Google Elevation API call. Takes lat/lon as input, outputs elevation dict
+    '''
 
     encpath = "enc:" + path
 
@@ -37,30 +40,31 @@ def getElevation(path="", samples="500", sensor="false", key=KEY, **elvtn_args):
     response = simplejson.load(urllib.urlopen(url))
 
     # Create a dictionary for each results[] object
-    elevationArray = []
+    elevation_array = []
 
     for resultset in response['results']:
         elevfeet = resultset['elevation'] * 3.281  # Convert elevation to feet
-        elevationArray.append(elevfeet)
+        elevation_array.append(elevfeet)
 
     responsefile = open("responsefile", "w")
     responsefile.write(str(response))
     responsefile.close()
 
-    return elevationArray
+    return elevation_array
 
 
-def latLonPath(filename):
+def lat_lon_path(gpx_filename):
+    '''
+    Parses gpx file into Google Elevation API formated longitude and latitude
+    '''
 
-    # Parses gpx file into Google Elevation API formated longitude and latitude
-
-    TRKPT = 'trkpt'
+    trkpt = 'trkpt'
 
     pathdict = []
-    f = open(filename)
+    gpx_file = open(gpx_filename)
 
-    for line in f:
-        if TRKPT in line:
+    for line in gpx_file:
+        if trkpt in line:
             latstart = line.find('"')
             latend = line.find('"', latstart + 1)
             lat = float(line[latstart + 1:latend])
@@ -71,25 +75,18 @@ def latLonPath(filename):
 
             pathdict.append((lon, lat))
 
-#    myPath = ''
-#    limit = 0
-#
-#    for k, v in pathdict:
-#        myPath = myPath + str(k) + "," + str(v) + "|"
-#        limit = limit + 1
-#
-#    pathStr = myPath[:-1
-
     return pathdict
 
-def distance(pathdict):
+
+def distance(pathlist):
+    '''
     # Haversine formula to calculate distance between GPS coordinates.
     # Written by Wayne Dyck
+    '''
 
     dist = 0
 
     for item in range(len(pathlist) - 1):
-        itemNum = 0
         lat1, lon1 = pathlist[item]
         lat2, lon2 = pathlist[item + 1]
         radius = 3959  # mi
@@ -104,7 +101,10 @@ def distance(pathdict):
     return dist
 
 
-def polyEncoder(pathlist):
+def polyencoder(pathlist):
+    '''
+    Polyline encoder for Google Maps APIs
+    '''
 
     encoder = gpolyencode.GPolyEncoder()
     codedpath = encoder.encode(pathlist)
@@ -113,26 +113,29 @@ def polyEncoder(pathlist):
     return points
 
 
-def largePath(pathlist):
+def large_path(pathlist):
+    '''
+    TODO: WRITE DOCSTRING
+    '''
 
-    #    numofrequests = range((numpy.ceil(len(pathlist) / 400.0))).astype('int')
     numofrequests = range(numpy.ceil(len(pathlist) / 400.0).astype('int'))
-    ycoord = []
+    y_coord = []
     for i in numofrequests:
         start = (i * 400)
         end = (i + 1) * 400
 
-        partialpathStr = polyEncoder(pathlist[start:end])
-        partialycoord = getElevation(partialpathStr)
+        partial_path_str = polyencoder(pathlist[start:end])
+        partialycoord = get_elevation(partial_path_str)
 
-        ycoord = ycoord + partialycoord
+        y_coord = y_coord + partialycoord
 
-    return ycoord
+    return y_coord
 
 
-def elevPlot(y, xDist):
-
-    # Uses pylab to plot elevation data.
+def elev_plot(y, xDist):
+    '''
+    Plot elevation graph using matplotlib
+    '''
 
     # Fill xnums list with len(y) coords evenly spaced
     xnums = []
@@ -149,7 +152,7 @@ def elevPlot(y, xDist):
 
     fig, ax = pylab.subplots(1)
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.2)
-    ax.text(.99, .99, graphinfo, transform=ax.transAxes, \
+    ax.text(.99, .99, graphinfo, transform=ax.transAxes,
             verticalalignment='top', horizontalalignment='right', bbox=props)
     ax.set_xlim(0.0, xDist)
     ax.plot(xnums, y)
@@ -159,14 +162,19 @@ def elevPlot(y, xDist):
     ax.set_title('Elevation Profile')
     pylab.savefig('elevation.png')
 
-if __name__ == '__main__':
 
-    script, filename = argv
-    pathlist = latLonPath(filename) #Parses 'filename' for GPS coordinates
-#    pathStr = polyEncoder(pathlist) #Encodes GPS coordinates to Google Polyline Encoding
-#    ycoord = getElevation(pathStr) # Google Elevation API to set y coordinates
-    ycoord = largePath(pathlist)
+def main():
+    '''Meat and potatoes'''
+
+    _, filename = argv
+    path = lat_lon_path(filename)  # Parses 'filename' for GPS coordinates
+#    pathStr = polyencoder(pathlist)   #Encodes GPS coordinates to Google Polyline Encoding
+#    ycoord = getElevation(pathStr)  # Google Elevation API to set y coordinates
+    ycoord = large_path(path)
     print("ycoord: ", ycoord)
     print(len(ycoord))
-    xdist = distance(pathlist) #Calculates distance to set x coordinates
-    elevPlot(ycoord, xdist) #Plots elevation
+    xdist = distance(path)  # Calculates distance to set x coordinates
+    elev_plot(ycoord, xdist)  # Plots elevation
+
+if __name__ == '__main__':
+    main()
