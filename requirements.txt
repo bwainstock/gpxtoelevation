@@ -1,0 +1,10 @@
+cycler==0.10.0
+GPolyEncode==0.1.1
+matplotlib==1.5.1
+numpy==1.11.1
+pkg-resources==0.0.0
+pyparsing==2.1.6
+python-dateutil==2.5.3
+pytz==2016.6.1
+simplejson==3.8.2
+six==1.10.0
